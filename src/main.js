@@ -4,6 +4,7 @@ import router from './router'
 import store from './store'
 import '@/utils/UI'
 import 'amfe-flexible'
+import '@/styles/base.less'
 
 Vue.config.productionTip = false
 
