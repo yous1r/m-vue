@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- 导航栏 -->
-    <van-nav-bar title="登录"/>
+    <van-nav-bar ref="tabbar" title="登录"/>
     <!-- 表单 -->
     <van-form @submit="onSubmit">
     <van-field
@@ -35,6 +35,7 @@ export default {
   name: 'Login',
   data () {
     return {
+      mainColor: this.themeColor.mainColor,
       mobile: '13987654321',
       code: '246810',
       rules: {
@@ -61,6 +62,10 @@ export default {
         this.$toast({ message: '登陆失败', position: 'bottom' })
       }
     }
+  },
+  created () {
+    console.log(this.$el)
+    // this.$refs.tabbar.$vnode.backgroundColor = this.themeColor.mainColor
   }
 }
 </script>
