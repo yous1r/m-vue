@@ -22,6 +22,10 @@
       <van-button
         round block
         type="info"
+        :loading='loading'
+        loading-text="登录中..."
+        :disabled="loading"
+        :color="mainColor"
         native-type="submit"
       >登录</van-button>
     </div>
@@ -30,14 +34,16 @@
 </template>
 
 <script>
-import { getUser } from '@/api/user'
+import { getLoad } from '@/api/user'
 export default {
   name: 'Login',
   data () {
     return {
       mainColor: this.themeColor.mainColor,
+      loading: false,
       mobile: '13987654321',
       code: '246810',
+      // 表单验证的规则
       rules: {
         mobile: [
           { required: true, message: '手机号不能为空' },
@@ -53,19 +59,27 @@ export default {
   methods: {
     // 提交表单的数据
     async onSubmit () {
+      // 用于判定是否为发送请求的状态,控制按钮的disabled状态,节流阀思想
+      this.loading = true
       try {
-        const res = await getUser(this.mobile, this.code)
-        this.$store.commit('addToken', JSON.stringify(res.data.data))
+        // 发送登录请求
+        const res = await getLoad(this.mobile, this.code)
+        // 将返回的token保存到vuex和localStorage中
+        // console.log(res)
+        this.$store.commit('addToken', res.data)
+        // 登录成功提示,成功
         this.$toast({ message: '登陆成功', position: 'bottom' })
-        this.$router.push('/')
+        // 登陆成功跳转到先前页
+        const back = this.$route.query.back || '/'
+        // console.log(back)
+        this.$router.push(back)
       } catch {
+        // 发送请求会存在错误信息,利用try|catch判断成功失败,并返回提示信息
         this.$toast({ message: '登陆失败', position: 'bottom' })
       }
+      // 当请求完成后重置节流阀
+      this.loading = false
     }
-  },
-  created () {
-    console.log(this.$el)
-    // this.$refs.tabbar.$vnode.backgroundColor = this.themeColor.mainColor
   }
 }
 </script>

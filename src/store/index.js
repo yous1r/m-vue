@@ -1,5 +1,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
+import { Dialog } from 'vant'
+import router from '@/router'
 
 // 导入localStorage中的方法
 /**
@@ -10,32 +12,47 @@ import Vuex from 'vuex'
  *  3. 解决办法: 操作token的同时,同时带上localStorage,而数据通过localStorage.getItem获取
  * */
 
-import { addToken, removeToken } from '@/utils/token'
+import { getToken, addToken, removeToken } from '@/utils/token'
 
 Vue.use(Vuex)
 
 export default new Vuex.Store({
+  // 开发环境下开启严格模式
   strict: process.env.NODE_ENV === 'development',
   state: {
-    token: JSON.parse(localStorage.getItem('token'))
+    // 将token保存到state中便于响应式
+    token: getToken()
   },
   mutations: {
+    // 添加token,同时在localStorage中存储一份
     addToken (state, token) {
+      // console.log(token)
       state.token = token
-      try {
-        addToken(token)
-      } catch {
-        console.log('写入token失败')
-      }
+      addToken(token)
     },
     // 移除token时将vuex中的token置空
     removeToken (state) {
+      // console.log(this.$dialog)
       state.token = null
       // 移除localStorage中的token
       removeToken()
+      router.push('/login')
     }
   },
   actions: {
+    async removeToken (state) {
+      try {
+        // 弹出确认框
+        await Dialog.confirm({
+          title: '提示',
+          message: '确认退出码?'
+        })
+      } catch {
+        return
+      }
+      // console.log(this.store)
+      state.commit('removeToken')
+    }
   },
   modules: {
   }

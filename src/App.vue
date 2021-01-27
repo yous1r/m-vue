@@ -5,12 +5,7 @@
 </template>
 
 <script>
-export default {
-  created () {
-    console.log(this)
-  }
-}
+export default {}
 </script>
 
-<style>
-</style>
+<style></style>
