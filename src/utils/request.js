@@ -1,7 +1,7 @@
 import store from '@/store'
 import axios from 'axios'
 import router from '../router'
-// import { Toast } from 'vant'
+import { Toast } from 'vant'
 
 const baseURL = 'http://toutiao-app.itheima.net'
 const instance = axios.create({
@@ -25,7 +25,7 @@ instance.interceptors.request.use(
   }
 )
 
-// 定义请求失败的处理函数
+// 定义请求失败的处理函数,清除token并跳转到login页面,在导航守卫中添加提示,请登录
 function goLogin () {
   store.commit('removeToken')
   router.push({
@@ -45,8 +45,6 @@ instance.interceptors.response.use(
   async function (error) {
     const { response, config } = error
     // 判断是否为401,如果是说明就是token过期了,否则清除token返回跳转login
-    // console.log(store)
-    console.log(response.status)
     if (response.status === 401) {
       // 判断refresh_token是否存在,存在就拿这个去请求新token,不存在清除token直接退出返回login
       const refreshToken = store.state.token.refresh_token
@@ -61,6 +59,7 @@ instance.interceptors.response.use(
             }
           })
           // console.log(res)
+          // 将新token替换原先的旧token,将配置重新发送
           const { token } = res.data.data
           store.commit('addToken', {
             token,
@@ -68,16 +67,16 @@ instance.interceptors.response.use(
           })
           return instance(config)
         } catch {
-          goLogin()
+          Toast.fail('登录信息失效')
         }
         store.commit('removeToken')
       } else {
+        goLogin()
         return Promise.reject(error)
       }
-    } else {
-      return Promise.reject(error)
     }
     // 对响应错误做点什么
+    goLogin()
     return Promise.reject(error)
   }
 )

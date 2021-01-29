@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import store from '@/store'
-// import { strict } from '@/store'
+import { Toast } from 'vant'
 Vue.use(VueRouter)
 
 // 解决跳转同一个
@@ -15,7 +15,8 @@ const routes = [
       { path: '', component: () => import('@/views/Main') },
       { path: '/qa', component: () => import('@/views/Main/qa') },
       { path: '/movie', component: () => import('@/views/Main/movie') },
-      { path: '/user', component: () => import('@/views/Main/user') }
+      { path: '/user', component: () => import('@/views/User/user') },
+      { path: '/user/editInfo', component: () => import('@/views/User/editUserInfo') }
     ]
   },
   { path: '*', component: () => import('@/pages/404') }
@@ -40,10 +41,18 @@ const whiteList = ['/login', '/404', '/', '/movie', '/qa']
 router.beforeEach((to, from, next) => {
   const token = store.state?.token
   // 在白名单内或者有token直接放行
-  if (whiteList.includes(to.path) || token) {
+  if (whiteList.includes(to.path)) {
   // console.log(token)
     return next()
   }
+  if (token) {
+    if (!store.state.userInfo) {
+      store.dispath('getUserInfo')
+      return next()
+    }
+    return next()
+  }
+  Toast.fail('请登录')
   // 定义登录之后回到先前页面
   next({
     path: '/login',

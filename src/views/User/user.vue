@@ -26,31 +26,14 @@
 
     <div class="input-list">
       <van-cell-group>
-          <van-cell title="编辑资料" icon="shop-o">
-            <!-- 使用 right-icon 插槽来自定义右侧图标 -->
-            <template #right-icon>
-              <van-icon name="arrow" class="search-icon" />
-            </template>
+          <van-cell title="编辑资料" icon="shop-o" to="/user/editInfo" is-link>
           </van-cell>
-          <van-cell title="小志同学" icon="shop-o">
-            <!-- 使用 right-icon 插槽来自定义右侧图标 -->
-            <template #right-icon>
-              <van-icon name="arrow" class="search-icon" />
-            </template>
+          <van-cell title="小志同学" icon="shop-o" is-link>
           </van-cell>
-          <van-cell title="系统设置" icon="shop-o">
-            <!-- 使用 right-icon 插槽来自定义右侧图标 -->
-            <template #right-icon>
-              <van-icon name="arrow" class="search-icon" />
-            </template>
+          <van-cell title="系统设置" icon="shop-o" is-link>
           </van-cell>
-          <van-cell @click="logout" title="退出登录" icon="shop-o">
-            <!-- 使用 right-icon 插槽来自定义右侧图标 -->
-            <template #right-icon>
-              <van-icon name="arrow" class="search-icon" />
-            </template>
+          <van-cell @click="logout" title="退出登录" icon="shop-o" is-link>
           </van-cell>
-
       </van-cell-group>
     </div>
   </div>
@@ -58,21 +41,20 @@
 
 <script>
 // 导入获取用户信息接口
-import { getUserInfo } from '@/api/user'
+// import { getUserInfo } from '@/api/user'
 export default {
   name: 'User',
   data () {
     return {
-      userInfo: {}
     }
   },
-  async created () {
+  created () {
     // 获取用户信息
-    try {
-      const res = await getUserInfo()
-      this.userInfo = res.data
-    } catch {
-      console.log('获取用户信息失败')
+    this.$store.dispatch('getUserInfo')
+  },
+  computed: {
+    userInfo () {
+      return this.$store.state.userInfo
     }
   },
   methods: {

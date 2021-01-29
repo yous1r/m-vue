@@ -15,3 +15,11 @@ export function getUserInfo () {
     method: 'get'
   })
 }
+
+export function updateInfo (data) {
+  return axios({
+    url: '/v1_0/user/profile',
+    method: 'patch',
+    data
+  })
+}
