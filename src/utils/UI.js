@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import { Button, Icon, NavBar, Form, Field, Toast, Tabbar, TabbarItem, Image as VanImage, Grid, GridItem, cell, CellGroup, Dialog, popup, Notify, DatetimePicker } from 'vant'
+import { Button, Icon, NavBar, Form, Field, Toast, Tabbar, TabbarItem, Image as VanImage, Grid, GridItem, cell, CellGroup, Dialog, popup, Notify, DatetimePicker, Uploader } from 'vant'
 
 Vue.use(Button)
 Vue.use(Icon)
@@ -18,3 +18,4 @@ Vue.use(Dialog)
 Vue.use(popup)
 Vue.use(Notify)
 Vue.use(DatetimePicker)
+Vue.use(Uploader)

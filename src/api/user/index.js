@@ -23,3 +23,11 @@ export function updateInfo (data) {
     data
   })
 }
+
+export function changeAvatar (data) {
+  return axios({
+    url: '/v1_0/user/photo',
+    method: 'patch',
+    data
+  })
+}

@@ -2,7 +2,7 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import { Dialog, Notify } from 'vant'
 import router from '@/router'
-import { getUserInfo, updateInfo } from '@/api/user'
+import { getUserInfo, updateInfo, changeAvatar } from '@/api/user'
 
 // 导入localStorage中的方法
 /**
@@ -56,6 +56,10 @@ export default new Vuex.Store({
     // 更新生日
     updateDate (state, birthday) {
       state.userInfo.birthday = birthday
+    },
+    // 更新用户头像
+    changeAvatar (state, avatar) {
+      state.userInfo.photo = avatar
     }
 
   },
@@ -101,7 +105,7 @@ export default new Vuex.Store({
         })
       }
     },
-    // 更改用户性别
+    // 更新用户性别
     async updateGender (store, gender) {
       // 如果值相等不发请求
       if (store.state.userInfo.gender === gender) return
@@ -122,6 +126,7 @@ export default new Vuex.Store({
         })
       }
     },
+    // 更新生日
     async updateDate (store, birthday) {
       // 如果值相等不发请求
       if (store.state.userInfo.birthday === birthday) return
@@ -134,6 +139,25 @@ export default new Vuex.Store({
           message: '更新成功',
           duration: 1000
         })
+      } catch {
+        Notify({
+          type: 'danger',
+          message: '更新失败',
+          duration: 1000
+        })
+      }
+    },
+    // 更新用户头像
+    async changeAvatar (store, avatar) {
+      try {
+        const res = await changeAvatar(avatar)
+        Notify({
+          type: 'success',
+          message: '更新成功',
+          duration: 1000
+        })
+        // 改变userInfo中的值
+        store.commit('changeAvatar', res.data.photo)
       } catch {
         Notify({
           type: 'danger',
