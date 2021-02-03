@@ -1,10 +1,19 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-import { Dialog, Notify } from 'vant'
+import { Dialog, Notify, Toast } from 'vant'
 import router from '@/router'
-import { getUserInfo, updateInfo, changeAvatar } from '@/api/user'
-
-// 导入localStorage中的方法
+import {
+  getUserInfo,
+  updateInfo,
+  changeAvatar
+} from '@/api/user'
+import {
+  dislikeArticle,
+  getReportArticles,
+  getAllChannels,
+  getUserChannels,
+  delChannel
+} from '@/api/home'
 /**
  *  为什么不使用localStorage进行数据读取操作?
  *  1. 因为localStorage中的数据是死的,做到实时刷新
@@ -23,8 +32,10 @@ export default new Vuex.Store({
   strict: process.env.NODE_ENV === 'development',
   state: {
     // 将token保存到state中便于响应式
-    token: getToken(),
-    userInfo: {}
+    token: JSON.parse(getToken()),
+    userInfo: {},
+    allChannels: [],
+    userChannels: []
   },
   mutations: {
     // 添加token,同时在localStorage中存储一份
@@ -34,7 +45,7 @@ export default new Vuex.Store({
     },
     // 移除token时将vuex中的token置空
     removeToken (state) {
-      state.token = null
+      state.token = {}
       // 移除localStorage中的token
       removeToken()
       state.userInfo = {}
@@ -43,7 +54,6 @@ export default new Vuex.Store({
     // 获取用户信息
     getUserInfo (state, info) {
       state.userInfo = info
-      // console.log(state.userInfo)
     },
     // 更新用户昵称
     updateNickname (state, nickname) {
@@ -60,113 +70,184 @@ export default new Vuex.Store({
     // 更新用户头像
     changeAvatar (state, avatar) {
       state.userInfo.photo = avatar
+    },
+    // 获取全部频道列表
+    getAllChannels (state, channels) {
+      state.allChannels = channels
+    },
+    // 获取用户频道
+    getUserChannels (state, channels) {
+      state.userChannels = channels
+    },
+    // 删除频道
+    delChannel (state, id) {
+      state.userChannels.filter(item => item.id !== id)
     }
-
   },
   actions: {
     // 移除token
-    async removeToken (store) {
+    async removeToken ({ commit }) {
       try {
-        // 弹出确认退出提示
-        await Dialog.confirm({
+        const isTrue = await Dialog.confirm({
           title: '提示',
-          message: '确认退出码?'
+          message: '确认退出吗?'
         })
-        store.commit('removeToken')
+        if (isTrue) {
+          // 弹出确认退出提示
+          commit('removeToken')
+          return Notify({
+            type: 'success',
+            message: '已退出',
+            duration: 1000
+          })
+        }
       } catch {
+        return Notify({
+          type: 'warning',
+          message: '已取消',
+          duration: 1000
+        })
       }
     },
     // 获取用户信息
-    async getUserInfo (store) {
+    async getUserInfo ({ commit }) {
       try {
         const res = await getUserInfo()
-        store.commit('getUserInfo', res.data)
+        commit('getUserInfo', res.data)
       } catch {
+        return Notify({
+          type: 'danger',
+          message: '获取用户信息失败',
+          duration: 1000
+        })
       }
     },
     // 更新用户昵称
-    async updateNickname (store, name) {
+    async updateNickname ({ commit, state }, name) {
       // 如果值相等不发请求
-      if (store.state.userInfo.name === name) return
-      store.commit('updateNickname', name)
+      if (state.userInfo.name === name) return
       // 发送请求更改用户名
       try {
-        updateInfo({ name })
-        Notify({
-          type: 'success',
-          message: '更新成功',
-          duration: 1000
-        })
+        await updateInfo({ name })
+        commit('updateNickname', name)
       } catch {
-        Notify({
+        return Notify({
           type: 'danger',
-          message: '更新失败',
+          message: '更新用户名失败',
           duration: 1000
         })
       }
+      Notify({
+        type: 'success',
+        message: '更新成功',
+        duration: 1000
+      })
     },
     // 更新用户性别
-    async updateGender (store, gender) {
-      // 如果值相等不发请求
-      if (store.state.userInfo.gender === gender) return
-      store.commit('updateGender', gender)
+    async updateGender ({ commit, state }, gender) {
+    // 如果值相等不发请求
+      if (state.userInfo.gender === gender) return
+      commit('updateGender', gender)
       // 发送请求更改性别
       try {
         updateInfo({ gender })
-        Notify({
-          type: 'success',
-          message: '更新成功',
-          duration: 1000
-        })
       } catch {
-        Notify({
+        return Notify({
           type: 'danger',
           message: '更新失败',
           duration: 1000
         })
       }
+      Notify({
+        type: 'success',
+        message: '更新成功',
+        duration: 1000
+      })
     },
     // 更新生日
-    async updateDate (store, birthday) {
+    async updateDate ({ commit, state }, birthday) {
       // 如果值相等不发请求
-      if (store.state.userInfo.birthday === birthday) return
-      store.commit('updateDate', birthday)
+      if (state.userInfo.birthday === birthday) return
+      commit('updateDate', birthday)
       // 发送请求更改性别
       try {
         updateInfo({ birthday })
-        Notify({
-          type: 'success',
-          message: '更新成功',
-          duration: 1000
-        })
       } catch {
-        Notify({
+        return Notify({
           type: 'danger',
           message: '更新失败',
           duration: 1000
         })
       }
+      Notify({
+        type: 'success',
+        message: '更新成功',
+        duration: 1000
+      })
     },
     // 更新用户头像
-    async changeAvatar (store, avatar) {
+    async changeAvatar ({ commit }, avatar) {
       try {
-        const res = await changeAvatar(avatar)
-        Notify({
-          type: 'success',
-          message: '更新成功',
-          duration: 1000
-        })
         // 改变userInfo中的值
-        store.commit('changeAvatar', res.data.photo)
+        const res = await changeAvatar(avatar)
+        commit('changeAvatar', res.data.photo)
       } catch {
-        Notify({
+        return Notify({
           type: 'danger',
           message: '更新失败',
           duration: 1000
         })
       }
+      Notify({
+        type: 'success',
+        message: '更新成功',
+        duration: 1000
+      })
+    },
+    // 不喜欢文章
+    async dislikeArticle (store, id) {
+      try {
+        await dislikeArticle(id)
+      } catch {
+        return Toast.fail('屏蔽失败')
+      }
+      Toast.success('已屏蔽')
+    },
+    // 举报文章
+    async reportArticle (store, { target, type }) {
+      try {
+        await getReportArticles(target, type)
+      } catch {
+        return Toast.fail('举报失败')
+      }
+      Toast.success('举报成功')
+    },
+    // 获取全部频道列表
+    async getAllChannels ({ commit }) {
+      const res = await getAllChannels()
+      const { channels } = res.data
+      commit('getAllChannels', channels)
+      return channels
+    },
+    // 获取用户频道
+    async getUserChannels ({ commit }) {
+      const res = await getUserChannels()
+      const { channels } = res.data
+      commit('getUserChannels', channels)
+      return channels
+    },
+    // 删除频道
+    async delChannel ({ commit }, payload) {
+      const res = await delChannel(payload.id, payload.index)
+      console.log(res)
+      commit('delChannel', payload.id)
     }
   },
-  modules: {
-  }
+  // 计算属性,计算可选择的频道
+  getters: {
+    optionalChannels (state) {
+      return state.allChannels.filter(item => !(state.userChannels.some(v => item.id === v.id)))
+    }
+  },
+  modules: {}
 })

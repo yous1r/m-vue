@@ -12,7 +12,7 @@ const routes = [
     path: '/',
     component: () => import('@/layouts'),
     children: [
-      { path: '', component: () => import('@/views/Main') },
+      { path: '', component: () => import('@/views/Home') },
       { path: '/qa', component: () => import('@/views/Main/qa') },
       { path: '/movie', component: () => import('@/views/Main/movie') },
       { path: '/user', component: () => import('@/views/User/user') },
@@ -46,7 +46,7 @@ router.beforeEach((to, from, next) => {
     return next()
   }
   if (token) {
-    if (!store.state.userInfo) {
+    if (!store.state?.userInfo) {
       store.dispath('getUserInfo')
       return next()
     }

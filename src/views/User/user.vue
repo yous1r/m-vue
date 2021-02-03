@@ -26,14 +26,10 @@
 
     <div class="input-list">
       <van-cell-group>
-          <van-cell title="编辑资料" icon="shop-o" to="/user/editInfo" is-link>
-          </van-cell>
-          <van-cell title="小志同学" icon="shop-o" is-link>
-          </van-cell>
-          <van-cell title="系统设置" icon="shop-o" is-link>
-          </van-cell>
-          <van-cell @click="logout" title="退出登录" icon="shop-o" is-link>
-          </van-cell>
+          <van-cell title="编辑资料" icon="shop-o" to="/user/editInfo" is-link />
+          <van-cell title="小志同学" icon="shop-o" is-link />
+          <van-cell title="系统设置" icon="shop-o" is-link />
+          <van-cell @click="logout" title="退出登录" icon="shop-o" is-link />
       </van-cell-group>
     </div>
   </div>
@@ -46,10 +42,12 @@ export default {
   name: 'User',
   data () {
     return {
+      // userInfo: ''
     }
   },
   created () {
     // 获取用户信息
+    // console.log(this.userInfo)
     this.$store.dispatch('getUserInfo')
   },
   computed: {
@@ -70,7 +68,7 @@ export default {
 .header {
   padding: 20px;
   display: flex;
-  line-height: auto;
+  //line-height: auto;
   .avarta {
     width: 60px;
     height: 60px;

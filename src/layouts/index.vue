@@ -1,7 +1,7 @@
 <template>
 <div>
   <router-view></router-view>
-  <van-tabbar :active-color="mainColor" route>
+  <van-tabbar class="tabbar" :active-color="mainColor" route >
     <van-tabbar-item to="/" icon="home-o" >首页</van-tabbar-item>
     <van-tabbar-item to="/qa" icon="chat-o">问答</van-tabbar-item>
     <van-tabbar-item to="/movie" icon="video-o">视频</van-tabbar-item>
@@ -24,4 +24,8 @@ export default {
 </script>
 
 <style lang="less" scoped>
+.tabbar {
+  position: fixed;
+  bottom: 0;
+}
 </style>

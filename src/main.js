@@ -6,7 +6,12 @@ import 'amfe-flexible'
 import '@/utils/UI'
 import Theme from '@/assets/theme.js'
 import '@/styles/base.less'
+import moment from 'moment'
 
+moment.locale('zh-cn')
+Vue.filter('relatevieTime', function (date) {
+  return moment(date).fromNow()
+})
 Vue.config.productionTip = false
 Vue.prototype.themeColor = Theme
 

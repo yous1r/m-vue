@@ -9,7 +9,8 @@
     <div class="img">
       <van-uploader :after-read="readFile"/>
       <van-image
-        width="40%"
+        width="100px"
+        height="100px"
         round
         fit="cover"
         :src="userInfo.photo"
@@ -124,7 +125,7 @@ export default {
     },
     readFile (file) {
       this.isShowCropper = true
-      this.img = file.content
+      this.avatar = file.content
     },
     // 更新用户信息
     async cutAvatar () {
