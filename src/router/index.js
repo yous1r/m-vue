@@ -37,7 +37,7 @@ VueRouter.prototype.push = function push (location, onResolve, onReject) {
 // from: 从哪儿来
 // next: 放行
 // 定义白名单
-const whiteList = ['/login', '/404', '/', '/movie', '/qa']
+const whiteList = ['/login', '/404', '', '/', '/movie', '/qa']
 router.beforeEach((to, from, next) => {
   const token = store.state?.token
   // 在白名单内或者有token直接放行

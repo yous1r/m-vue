@@ -1,19 +1,6 @@
 import axios from '@/utils/request'
 
-// 获取所有频道列表
-export function getAllChannels () {
-  return axios({
-    method: 'get',
-    url: '/v1_0/channels'
-  })
-}
-// 获取当前用户频道列表
-export function getUserChannels () {
-  return axios({
-    method: 'get',
-    url: '/v1_0/user/channels'
-  })
-}
+// 文章模块
 // 获取推荐文章列表
 export function getDefaultArticles (id, timestamp) {
   return axios({
@@ -44,21 +31,5 @@ export function getReportArticles (id, type, des = null) {
       type,
       remark: des
     }
-  })
-}
-// 删除频道
-export function delChannel (id, seq) {
-  return axios({
-    method: 'patch',
-    url: 'v1_0/user/channels',
-    data: { channels: [id, seq] }
-  })
-}
-// 添加频道
-export function addChannel (id, seq) {
-  return axios({
-    method: 'post',
-    url: 'v1_0/user/channels',
-    data: { addChannel: [id, seq] }
   })
 }

@@ -65,7 +65,7 @@
 </template >
 
 <script >
-import { getDefaultArticles } from '@/api/home'
+import { getDefaultArticles } from '@/api/home/article'
 
 export default {
   name: 'Article',

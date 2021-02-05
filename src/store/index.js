@@ -9,11 +9,14 @@ import {
 } from '@/api/user'
 import {
   dislikeArticle,
-  getReportArticles,
+  getReportArticles
+} from '@/api/home/article'
+import {
+  addChannel,
+  delChannel,
   getAllChannels,
-  getUserChannels,
-  delChannel
-} from '@/api/home'
+  getChannels
+} from '@/api/home/channel'
 /**
  *  为什么不使用localStorage进行数据读取操作?
  *  1. 因为localStorage中的数据是死的,做到实时刷新
@@ -22,7 +25,7 @@ import {
  *  3. 解决办法: 操作token的同时,同时带上localStorage,而数据通过localStorage.getItem获取
  * */
 
-import { getToken, addToken, removeToken } from '@/utils/token'
+import { getToken, addToken, removeToken, setChannelList, getChanneLlist } from '@/utils/storage'
 // import axios from 'axios'
 
 Vue.use(Vuex)
@@ -32,10 +35,12 @@ export default new Vuex.Store({
   strict: process.env.NODE_ENV === 'development',
   state: {
     // 将token保存到state中便于响应式
-    token: JSON.parse(getToken()),
+    token: getToken(),
     userInfo: {},
+    // 全部频道,主要用于计算可选频道
     allChannels: [],
-    userChannels: []
+    // 用于存放我的频道
+    channelList: []
   },
   mutations: {
     // 添加token,同时在localStorage中存储一份
@@ -71,17 +76,26 @@ export default new Vuex.Store({
     changeAvatar (state, avatar) {
       state.userInfo.photo = avatar
     },
+    // 设置频道
+    setChannels (state, channels) {
+      state.channelList = channels
+    },
     // 获取全部频道列表
     getAllChannels (state, channels) {
       state.allChannels = channels
     },
     // 获取用户频道
-    getUserChannels (state, channels) {
-      state.userChannels = channels
+    getChannels (state, channels) {
+      state.channelList = channels
     },
-    // 删除频道
     delChannel (state, id) {
-      state.userChannels.filter(item => item.id !== id)
+      state.channelList = state.channelList.filter(item => item.id !== id)
+      setChannelList(state.channelList)
+    },
+    addChannel (state, id) {
+      const current = state.allChannels.filter(item => item.id === id)
+      state.channelList.push(...current)
+      setChannelList(state.channelList)
     }
   },
   actions: {
@@ -230,23 +244,35 @@ export default new Vuex.Store({
       return channels
     },
     // 获取用户频道
-    async getUserChannels ({ commit }) {
-      const res = await getUserChannels()
-      const { channels } = res.data
-      commit('getUserChannels', channels)
+    async getChannels ({ commit }) {
+      const res = await getChannels()
+      const channels = res.data.channels
+      commit('getChannels', channels)
       return channels
     },
     // 删除频道
-    async delChannel ({ commit }, payload) {
-      const res = await delChannel(payload.id, payload.index)
-      console.log(res)
-      commit('delChannel', payload.id)
+    async delChannel ({ commit }, id) {
+      try {
+        await delChannel(id)
+        commit('delChannel', id)
+      } catch {
+        return Toast.fail('删除失败')
+      }
+    },
+    // 添加频道
+    async addChannel ({ commit }, channel) {
+      try {
+        await addChannel(channel)
+        commit('addChannel', channel[0].id)
+      } catch {
+        return Toast.fail('添加失败')
+      }
     }
   },
   // 计算属性,计算可选择的频道
   getters: {
     optionalChannels (state) {
-      return state.allChannels.filter(item => !(state.userChannels.some(v => item.id === v.id)))
+      return state.allChannels.filter(item => !(state.channelList.some(v => item.id === v.id)))
     }
   },
   modules: {}

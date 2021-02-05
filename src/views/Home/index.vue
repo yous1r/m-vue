@@ -13,42 +13,64 @@
     </van-nav-bar>
     <!-- tab栏切换频道 -->
     <van-tabs v-model="active">
-      <van-tab :title="item.name" v-for="item in channels" :key="item.id">
+      <van-tab :title="item.name" v-for="item in channelList" :key="item.id">
         <!-- 文章列表组件 -->
         <Article :channelId="item.id"/>
       </van-tab>
       <!--频道列表 展开按钮-->
-      <div class="channel_list" @click="showChannelList = true" >
+      <div class="channel_list" @click="show = true" >
         <van-icon name="wap-nav" />
+      </div>
+      <!--频道弹出层-->
+      <van-action-sheet
+        v-model="show"
+        title="频道管理"
+      >
         <!--频道列表组件-->
         <!--双向绑定高亮的下标-->
-        <ChannelList :isShow="showChannelList" v-model="active" :userChannelList="channels"></ChannelList>
-      </div>
+        <ChannelList v-model="active" @close="show = false"></ChannelList>
+      </van-action-sheet>
     </van-tabs>
   </div>
 </template>
 
 <script>
+import { getChannelList } from '@/utils/storage'
+import { mapState } from 'vuex'
 import Article from './Article'
 import ChannelList from './ChannelList'
 export default {
   name: 'Home',
   data () {
     return {
-      // 控制默认的显示与隐藏
+      // 用于标记选中的频道项
       active: 0,
-      // 存放频道列表,根据用户的登录状态以及是否有本地存储列表来渲染
-      channels: [],
-      // 控制频道列表编辑页面的展示与隐藏
-      showChannelList: false
+      // 控制频道管理界面的显示、隐藏
+      show: false
     }
+  },
+  computed: {
+    // 接收vuex中的token来判断是否已经登陆
+    ...mapState(['channelList', 'token'])
   },
   components: { Article, ChannelList },
   // 获取频道列表
   async created () {
-    // 如果有token从vuex中读取频道列表
-    if (this.$store.state.token?.token) {
-      this.channels = await this.$store.dispatch('getUserChannels')
+    // 1. 判断是否有token,有token的话,发送请求获取当前用户频道并退出,没有执行下一步
+    // 2. 判断localStorage中是否有channelList,有的话直接读取,没有的话发送请求获取默认的推荐频道
+    if (this.token?.token) {
+    // 有
+      await this.$store.dispatch('getChannels')
+    } else {
+      // 1. 定义一个变量接收localStorage中的CHANNEL_LIST
+      const channels = getChannelList()
+      if (channels) {
+      // 2. 通过判断存在与否,存在的话将该值赋值给vuex,用于响应式
+        this.$store.commit('setChannels', channels)
+      } else {
+      // 3. 不存在的话,再去发送ajax请求获取默认频道列表
+        this.$store.dispatch('getChannels')
+      }
     }
   }
 }
@@ -134,5 +156,7 @@ export default {
   font-size: 20px;
   z-index: 999
 }
-
+.content {
+  padding: 10px 10px 20px;
+}
 </style>

@@ -1,5 +1,5 @@
 <template >
-  <van-action-sheet v-model="isShow" title="频道管理">
+  <div class="channelList">
     <!--我的频道模块-->
     <div class="userChannelList">
       <van-nav-bar left-text="我的频道" :border="false">
@@ -10,12 +10,12 @@
       <!--我的频道列表-->
       <van-grid :column-num="4">
         <van-grid-item
-          v-for="(item,index) in userChannelList"
+          v-for="(item,index) in channelList"
           :key="index"
-          @click="changeChannel(index)"
+          @click.stop="changeChannel(index)"
           :class="{ select: index === value}"
         >{{ item.name }}
-          <van-icon name="cross" v-if="editing && item.id !== 0"  @click="del(item.id, index)"/>
+          <van-icon name="cross" v-if="editing && item.id !== 0"  @click.stop="del(item.id, index)"/>
         </van-grid-item>
       </van-grid>
     </div>
@@ -28,22 +28,27 @@
         <van-grid-item
           v-for="item in optionalChannels"
           :key="item.id"
-          @click="add"
+          @click="add(item.id)"
         >{{ item.name }}</van-grid-item>
       </van-grid>
     </div>
-  </van-action-sheet>
+  </div>
 </template >
 
 <script >
 // import { getDefaultChannels } from '@/api/home'
+import { mapState, mapGetters } from 'vuex'
 export default {
   name: 'ChannelList',
-  props: ['isShow', 'userChannelList', 'value'],
+  props: ['value'],
+  computed: {
+    // 通过计算属性获取vuex中的值
+    ...mapState(['channelList', 'token']),
+    ...mapGetters(['optionalChannels'])
+  },
   data () {
     return {
-      editing: false,
-      allChannels: []
+      editing: false
     }
   },
   methods: {
@@ -51,36 +56,56 @@ export default {
     changeChannel (index) {
       if (this.editing) return
       this.$emit('input', index)
+      // 切换频道后关闭弹窗
+      this.$emit('close')
     },
     // 删除频道
     del (id, index) {
-      console.log(id, index)
-      this.$store.dispatch('delChannel', { id, index })
+      /*  1. 删除频道之前判断有没有token
+      *   2. 有token的话,先判断是否删除的是高亮项,如果是的话,就将推荐置为高亮
+      *   3.如果删除项的下标比高亮项下标小的的话,那么将传的值为 value-1
+      *
+      * */
+      if (this.token?.token) {
+        // 有token
+        if (index === this.value) {
+          this.$emit('input', 0)
+        }
+        if (index < this.value) {
+          this.$emit('input', this.value - 1)
+        }
+        this.$store.dispatch('delChannel', id)
+      } else {
+        // 没有token
+        // 将点击的频道的id给到vuex, 进行过滤,并将过滤好的频道列表保存到本地
+        this.$store.commit('delChannel', id)
+      }
     },
-    add () {
-    }
-  },
-  computed: {
-    // 通过getter获取可选频道
-    optionalChannels () {
-      return this.$store.getters.optionalChannels
+    add (id) {
+      if (this.token?.token) {
+        // 有token
+        this.$store.dispatch('addChannel', [{ id, seq: this.channelList.length }])
+      } else {
+        // 没有token
+        // 将id穿过去处理,并将处理好的数据存放到本地
+        this.$store.commit('addChannel', id)
+      }
     }
   },
   async created () {
     // 发送请求获取所有可用的列表用于计算可选的列表
-    this.allChannels = await this.$store.dispatch('getAllChannels')
+    this.$store.dispatch('getAllChannels')
   }
 }
 </script >
 
 <style lang="less" scoped>
-.van-popup {
-  padding-bottom: 20px;
-  .userChannelList,
-  .optionalChannelList {
-    padding: 0 10px;
-  }
+
+.userChannelList,
+.optionalChannelList {
+  padding: 0 10px;
 }
+
 .van-nav-bar {
   font-size: 20px;
   margin-bottom: 15px;
